@@ -17,6 +17,9 @@ const sectionSec = document.querySelector(".section-sec");
 const btnTimer = document.querySelector(".nav-timer");
 const btnSec = document.querySelector(".nav-sec");
 
+const audio = new Audio("../src/audio/notification.mp3");
+const playedSounds = new Set();
+
 btnSec.addEventListener("click", () => {
   sectionSec.style.display = "block";
   sectionTimer.style.display = "none";
@@ -66,7 +69,9 @@ function addTask(event) {
 }
 
 export function upDaterTimer() {
-  const dataArr = JSON.parse(localStorage.getItem("date")).sort((a,b) => a.id - b.id);
+  const dataArr = JSON.parse(localStorage.getItem("date")).sort(
+    (a, b) => a.id - b.id,
+  );
   wrapperTimer.innerHTML = "";
   wrapperSec.innerHTML = "";
 
@@ -79,21 +84,27 @@ export function upDaterTimer() {
 
     const days = Math.floor(timeDifferens / 1000 / 60 / 60 / 24);
     const hours = Math.floor(
-      (timeDifferens % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
+      (timeDifferens % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60),
     );
     const minutes = Math.floor(
-      (timeDifferens % (1000 * 60 * 60)) / (1000 * 60)
+      (timeDifferens % (1000 * 60 * 60)) / (1000 * 60),
     );
     const seconds = Math.floor((timeDifferens % (1000 * 60)) / 1000);
 
     if (
-      (days === 0 && hours === 0 && minutes === 0 && seconds === 0) ||
-      (el.decrease && data - nowDate < 0)
+      ((days === 0 && hours === 0 && minutes === 0 && seconds === 0) ||
+        (el.decrease && data - nowDate < 0)) &&
+      !playedSounds.has(el.id)
     ) {
       title.innerHTML = `Событие: ${el.textDesc}`;
       modal.style.display = "block";
       buttonModal.setAttribute("data-id", el.id);
       closeModalBtn.setAttribute("data-id", el.id);
+
+      // Воспроизведение звука
+      audio.play().catch((e) => console.warn("Звук не воспроизведён:", e));
+      playedSounds.add(el.id);
+
       setTimeout(() => {
         closeModalBtn.style.visibility = "visible";
       }, 2000);
@@ -151,6 +162,8 @@ function closeModal() {
     } else return date;
   });
   localStorage.setItem("date", JSON.stringify(dateNew));
+  audio.pause();
+  audio.currentTime = 0;
 }
 
 // закрываем модальное окно по любому месту
@@ -159,6 +172,8 @@ window.addEventListener("click", (event) => {
   if (event.target === modal) {
     modal.style.display = "none";
   }
+  audio.pause();
+  audio.currentTime = 0;
 });
 
 buttonModal.addEventListener("click", () => {
@@ -167,6 +182,6 @@ buttonModal.addEventListener("click", () => {
   const dateNew = date.filter((date) => date.id != dateId);
   localStorage.setItem("date", JSON.stringify(dateNew));
   modal.style.display = "none";
+  audio.pause();
+  audio.currentTime = 0;
 });
-
-
